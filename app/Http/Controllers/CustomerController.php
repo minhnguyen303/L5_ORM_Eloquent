@@ -20,24 +20,42 @@ class CustomerController extends Controller{
      * @return Response|Application|Factory|View
      */
 
-    public function index(){
-        $customers = Customer::all();
+    public function index()
+
+    {
+        $customers = Customer::paginate(1);
         $cities = City::all();
         return view('Customers.list', compact('customers', 'cities'));
+
     }
 
-    public function filterByCity(Request $request){
+    public function filterByCity(Request $request)
+    {
         $idCity = $request->input('city_id');
 
         //kiem tra city co ton tai khong
         $cityFilter = City::findOrFail($idCity);
-
         //lay ra tat ca customer cua cityFiler
         $customers = Customer::where('city_id', $cityFilter->id)->get();
         $totalCustomerFilter = count($customers);
+
         $cities = City::all();
 
         return view('Customers.list', compact('customers', 'cities', 'totalCustomerFilter', 'cityFilter'));
+    }
+
+
+    public function search(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        if (!$keyword) {
+            return redirect()->route('customers.index');
+        }
+        $customers = Customer::where('name', 'LIKE', '%' . $keyword . '%')->paginate(5);
+
+        $cities = City::all();
+        return view('Customers.list', compact('customers', 'cities'));
+
     }
 
     /**
